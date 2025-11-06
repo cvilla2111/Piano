@@ -221,6 +221,9 @@ class Piano {
                 // Update button state
                 document.getElementById('cast-button').classList.add('casting');
 
+                // Setup message handler for syncing key states
+                this.setupPresentationSync(this.presentationConnection);
+
                 // Handle connection state changes
                 this.presentationConnection.addEventListener('terminate', () => {
                     this.presentationConnection = null;
@@ -237,6 +240,29 @@ class Piano {
                 alert('Unable to start presentation. Make sure a second display is available.');
             }
         }
+    }
+
+    setupPresentationSync(connection) {
+        // Listen for messages from the other display
+        connection.addEventListener('message', (event) => {
+            try {
+                const data = JSON.parse(event.data);
+
+                if (data.type === 'keypress') {
+                    // Update visual state only (don't play sound to avoid echo)
+                    const keyElement = document.querySelector(`[data-frequency="${data.frequency}"]`);
+                    if (keyElement) {
+                        if (data.action === 'press') {
+                            keyElement.classList.add('active');
+                        } else if (data.action === 'release') {
+                            keyElement.classList.remove('active');
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error processing presentation message:', error);
+            }
+        });
     }
 
     handleTouchStart(e) {
@@ -380,6 +406,9 @@ class Piano {
         if (keyElement) {
             keyElement.classList.add('active');
         }
+
+        // Sync with presentation display
+        this.sendPresentationMessage({ type: 'keypress', action: 'press', frequency });
     }
 
     stopNote(frequency, keyElement) {
@@ -402,12 +431,25 @@ class Piano {
         if (keyElement) {
             keyElement.classList.remove('active');
         }
+
+        // Sync with presentation display
+        this.sendPresentationMessage({ type: 'keypress', action: 'release', frequency });
+    }
+
+    sendPresentationMessage(data) {
+        if (this.presentationConnection && this.presentationConnection.state === 'connected') {
+            try {
+                this.presentationConnection.send(JSON.stringify(data));
+            } catch (error) {
+                console.error('Error sending presentation message:', error);
+            }
+        }
     }
 }
 
 // Initialize piano when page loads
 window.addEventListener('DOMContentLoaded', () => {
-    new Piano();
+    const piano = new Piano();
 
     // Try to set fixed window size (may not work in all browsers due to security restrictions)
     try {
@@ -436,5 +478,20 @@ window.addEventListener('DOMContentLoaded', () => {
         pianoContainer.addEventListener('gesturechange', (e) => {
             e.preventDefault();
         }, { passive: false });
+    }
+
+    // Setup presentation receiver (for the secondary display)
+    if (navigator.presentation && navigator.presentation.receiver) {
+        navigator.presentation.receiver.connectionList.then(list => {
+            list.connections.forEach(connection => {
+                piano.setupPresentationSync(connection);
+                piano.presentationConnection = connection;
+            });
+
+            list.addEventListener('connectionavailable', (event) => {
+                piano.setupPresentationSync(event.connection);
+                piano.presentationConnection = event.connection;
+            });
+        });
     }
 });
