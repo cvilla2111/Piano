@@ -6,6 +6,8 @@ class Piano {
         this.activeNotes = new Map();
         this.volume = 1.0;
         this.activeTouches = new Map(); // Track multiple touches for multi-touch chords and glissando
+        this.presentationRequest = null;
+        this.presentationConnection = null;
 
         // 38 keys starting from C2 to D5
         this.keys = this.generateKeys();
@@ -89,6 +91,13 @@ class Piano {
             whiteKey.className = 'key white-key';
             whiteKey.dataset.note = slot.white.note;
             whiteKey.dataset.frequency = slot.white.frequency;
+
+            // Add label to white key
+            const whiteLabel = document.createElement('span');
+            whiteLabel.className = 'key-label';
+            whiteLabel.textContent = slot.white.note;
+            whiteKey.appendChild(whiteLabel);
+
             this.addKeyListeners(whiteKey, slot.white.frequency);
             slotWrapper.appendChild(whiteKey);
 
@@ -98,12 +107,40 @@ class Piano {
                 blackKey.className = 'key black-key';
                 blackKey.dataset.note = slot.black.note;
                 blackKey.dataset.frequency = slot.black.frequency;
+
+                // Add label to black key as fraction format
+                const labelData = this.getBlackKeyLabel(slot.black.note);
+                if (labelData) {
+                    const blackLabel = document.createElement('div');
+                    blackLabel.className = 'key-label black-key-label';
+                    blackLabel.innerHTML = `
+                        <div class="note-sharp">${labelData.sharp}</div>
+                        <div class="note-divider"></div>
+                        <div class="note-flat">${labelData.flat}</div>
+                    `;
+                    blackKey.appendChild(blackLabel);
+                }
+
                 this.addKeyListeners(blackKey, slot.black.frequency);
                 slotWrapper.appendChild(blackKey);
             }
 
             pianoElement.appendChild(slotWrapper);
         });
+    }
+
+    getBlackKeyLabel(note) {
+        // Convert sharp notation to separate sharp and flat names
+        const sharpToFlat = {
+            'C#': { sharp: 'C#', flat: 'Db' },
+            'D#': { sharp: 'D#', flat: 'Eb' },
+            'F#': { sharp: 'F#', flat: 'Gb' },
+            'G#': { sharp: 'G#', flat: 'Ab' },
+            'A#': { sharp: 'A#', flat: 'Bb' }
+        };
+
+        const noteName = note.replace(/[0-9]/g, ''); // Remove octave number
+        return sharpToFlat[noteName] || null;
     }
 
     addKeyListeners(keyElement, frequency) {
@@ -148,6 +185,58 @@ class Piano {
             e.preventDefault();
             this.handleTouchEnd(e);
         }, { passive: false });
+
+        // Cast/Presentation button
+        this.setupCastButton();
+    }
+
+    setupCastButton() {
+        const castButton = document.getElementById('cast-button');
+
+        // Check if Presentation API is available
+        if ('PresentationRequest' in window) {
+            castButton.addEventListener('click', () => this.togglePresentation());
+        } else {
+            castButton.disabled = true;
+            castButton.title = 'Presentation API not supported in this browser';
+        }
+    }
+
+    async togglePresentation() {
+        if (this.presentationConnection) {
+            // Terminate existing presentation
+            this.presentationConnection.terminate();
+            this.presentationConnection = null;
+            document.getElementById('cast-button').classList.remove('casting');
+        } else {
+            // Start new presentation
+            try {
+                // Create presentation request with current page URL
+                const presentationUrl = window.location.href;
+                this.presentationRequest = new PresentationRequest([presentationUrl]);
+
+                // Start the presentation
+                this.presentationConnection = await this.presentationRequest.start();
+
+                // Update button state
+                document.getElementById('cast-button').classList.add('casting');
+
+                // Handle connection state changes
+                this.presentationConnection.addEventListener('terminate', () => {
+                    this.presentationConnection = null;
+                    document.getElementById('cast-button').classList.remove('casting');
+                });
+
+                this.presentationConnection.addEventListener('close', () => {
+                    this.presentationConnection = null;
+                    document.getElementById('cast-button').classList.remove('casting');
+                });
+
+            } catch (error) {
+                console.error('Failed to start presentation:', error);
+                alert('Unable to start presentation. Make sure a second display is available.');
+            }
+        }
     }
 
     handleTouchStart(e) {
