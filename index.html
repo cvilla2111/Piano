@@ -82,6 +82,32 @@
             color: rgba(0,0,0,0.5);
         }
 
+        .root-note, .chord-type {
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+        }
+
+        .root-note:hover, .chord-type:hover {
+            filter: brightness(0.95);
+        }
+
+        .root-note.selected, .chord-type.selected {
+            background-color: #d8fff7 !important;
+        }
+
+        .chord-item {
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+        }
+
+        .chord-item:hover {
+            filter: brightness(0.95);
+        }
+
+        .chord-item.selected {
+            background-color: #d8fff7 !important;
+        }
+
         .scroll-container {
             position: absolute;
             top: var(--header-height);
@@ -97,6 +123,7 @@
             gap: 0;
             min-width: 100%;
             min-height: 100%;
+            align-content: start;
             will-change: transform;
         }
 
@@ -217,7 +244,13 @@
     </style>
 </head>
 <body>
-    <div class="left-container"></div>
+    <div class="left-container">
+        <div class="scroll-container" style="top: var(--header-height); bottom: var(--header-height);">
+            <div id="chord-list" class="scroll-content" style="grid-template-columns: 1fr;">
+                <div class="rect chord-item" style="background-color: #fffff7; border-top: none; border-left: none; border-right: none; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px; color: rgba(0,0,0,0.5);"><span>C Maj</span><span>4/4</span></div>
+            </div>
+        </div>
+    </div>
     <div class="header left-header">
         <i class="header-chevron-left" data-lucide="chevron-left" width="20" height="20" stroke-width="3" style="color: white;"></i>
         <span class="header-title" style="font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 16px; color: white;">01/01</span>
@@ -231,19 +264,19 @@
     </div>
     <div class="right-container" style="top: var(--gap); height: var(--root-height); background-color: #f7f7f0; box-shadow: 0 4px 8px rgba(0,0,0,0.25);">
         <div class="scroll-container">
-            <div class="scroll-content" style="grid-template-columns: repeat(6, 1fr);">
-                <div class="rect" style="background-color: #d8ffd1; border-top: none; border-left: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">C</div>
-                <div class="rect" style="background-color: #ffe5dd; border-top: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">C<sup>#</sup>/D<sup>b</sup></div>
-                <div class="rect" style="background-color: #d8ffd1; border-top: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">D</div>
-                <div class="rect" style="background-color: #ffe5dd; border-top: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">D<sup>#</sup>/E<sup>b</sup></div>
-                <div class="rect" style="background-color: #d8ffd1; border-top: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">E</div>
-                <div class="rect" style="background-color: #d8ffd1; border-top: none; border-right: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">F</div>
-                <div class="rect" style="background-color: #ffe5dd; border-bottom: none; border-left: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">F<sup>#</sup>/G<sup>b</sup></div>
-                <div class="rect" style="background-color: #d8ffd1; border-bottom: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">G</div>
-                <div class="rect" style="background-color: #ffe5dd; border-bottom: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">G<sup>#</sup>/A<sup>b</sup></div>
-                <div class="rect" style="background-color: #d8ffd1; border-bottom: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">A</div>
-                <div class="rect" style="background-color: #ffe5dd; border-bottom: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">A<sup>#</sup>/B<sup>b</sup></div>
-                <div class="rect" style="background-color: #d8ffd1; border-bottom: none; border-right: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">B</div>
+            <div id="chord-root-grid" class="scroll-content" style="grid-template-columns: repeat(6, 1fr);">
+                <div class="rect root-note" data-note="C" style="background-color: #d8ffd1; border-top: none; border-left: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">C</div>
+                <div class="rect root-note" data-note="C#" style="background-color: #ffe5dd; border-top: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">C<sup>#</sup>/D<sup>b</sup></div>
+                <div class="rect root-note" data-note="D" style="background-color: #d8ffd1; border-top: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">D</div>
+                <div class="rect root-note" data-note="D#" style="background-color: #ffe5dd; border-top: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">D<sup>#</sup>/E<sup>b</sup></div>
+                <div class="rect root-note" data-note="E" style="background-color: #d8ffd1; border-top: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">E</div>
+                <div class="rect root-note" data-note="F" style="background-color: #d8ffd1; border-top: none; border-right: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">F</div>
+                <div class="rect root-note" data-note="F#" style="background-color: #ffe5dd; border-bottom: none; border-left: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">F<sup>#</sup>/G<sup>b</sup></div>
+                <div class="rect root-note" data-note="G" style="background-color: #d8ffd1; border-bottom: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">G</div>
+                <div class="rect root-note" data-note="G#" style="background-color: #ffe5dd; border-bottom: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">G<sup>#</sup>/A<sup>b</sup></div>
+                <div class="rect root-note" data-note="A" style="background-color: #d8ffd1; border-bottom: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">A</div>
+                <div class="rect root-note" data-note="A#" style="background-color: #ffe5dd; border-bottom: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">A<sup>#</sup>/B<sup>b</sup></div>
+                <div class="rect root-note" data-note="B" style="background-color: #d8ffd1; border-bottom: none; border-right: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">B</div>
             </div>
         </div>
     </div>
@@ -256,14 +289,14 @@
     </div>
     <div class="right-container" style="top: var(--type-top); height: var(--type-height); background-color: #f7f7f0; box-shadow: 0 4px 8px rgba(0,0,0,0.25);">
         <div class="scroll-container">
-            <div class="scroll-content" style="grid-template-columns: repeat(6, 1fr);">
+            <div id="chord-type-grid" class="scroll-content" style="grid-template-columns: repeat(6, 1fr);">
                 <!-- Row 1: Maj, Min, Dim, 6, min6, Aug -->
-                <div class="rect" style="background-color: #d8ffd1; border-top: none; border-left: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">Maj</div>
-                <div class="rect" style="background-color: #ffe5dd; border-top: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">Min</div>
-                <div class="rect" style="background-color: #d8ffd1; border-top: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">Dim</div>
-                <div class="rect" style="background-color: #ffe5dd; border-top: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">6</div>
-                <div class="rect" style="background-color: #d8ffd1; border-top: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">min6</div>
-                <div class="rect" style="background-color: #d8ffd1; border-top: none; border-right: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">Aug</div>
+                <div class="rect chord-type" data-type="Maj" style="background-color: #d8ffd1; border-top: none; border-left: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">Maj</div>
+                <div class="rect chord-type" data-type="Min" style="background-color: #ffe5dd; border-top: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">Min</div>
+                <div class="rect chord-type" data-type="Dim" style="background-color: #d8ffd1; border-top: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">Dim</div>
+                <div class="rect chord-type" data-type="6" style="background-color: #ffe5dd; border-top: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">6</div>
+                <div class="rect chord-type" data-type="min6" style="background-color: #d8ffd1; border-top: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">min6</div>
+                <div class="rect chord-type" data-type="Aug" style="background-color: #d8ffd1; border-top: none; border-right: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">Aug</div>
                 <!-- Row 2: Maj7, Min7, 7, Maj9, Min9, 9 -->
                 <div class="rect" style="background-color: #ffe5dd; border-left: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">Maj7</div>
                 <div class="rect" style="background-color: #d8ffd1; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">Min7</div>
@@ -381,8 +414,8 @@
         <span style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px; color: white;">Chord duration</span>
     </div>
     <div class="header left-bottom-header" style="top: calc(100% - var(--gap) - var(--header-height));">
-        <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px; color: white;">Insert</span>
-        <span style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px; color: white;">Remove</span>
+        <span id="insert-btn" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px; color: white; cursor: pointer;">Insert</span>
+        <span id="remove-btn" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px; color: white; cursor: pointer;">Remove</span>
     </div>
     <div id="viewport-label" style="position: fixed; bottom: 4px; right: 4px; font-family: 'Roboto', sans-serif; font-size: 10px; color: rgba(0,0,0,0.3); pointer-events: none;"></div>
 
@@ -559,6 +592,86 @@
 
             // Wheel/touchpad events
             container.addEventListener('wheel', onWheel, { passive: false });
+        });
+
+        // Chord selection and insert functionality
+        let selectedRoot = 'C';
+        let selectedType = 'Maj';
+
+        // Select first root note and first chord type by default
+        document.querySelector('.root-note[data-note="C"]').classList.add('selected');
+        document.querySelector('.chord-type[data-type="Maj"]').classList.add('selected');
+
+        // Root note selection
+        document.querySelectorAll('.root-note').forEach(note => {
+            note.addEventListener('click', (e) => {
+                e.stopPropagation();
+                document.querySelectorAll('.root-note').forEach(n => n.classList.remove('selected'));
+                note.classList.add('selected');
+                selectedRoot = note.dataset.note;
+            });
+        });
+
+        // Chord type selection
+        document.querySelectorAll('.chord-type').forEach(type => {
+            type.addEventListener('click', (e) => {
+                e.stopPropagation();
+                document.querySelectorAll('.chord-type').forEach(t => t.classList.remove('selected'));
+                type.classList.add('selected');
+                selectedType = type.textContent.trim();
+            });
+        });
+
+        // Add chord-type class to all chord type rectangles
+        document.querySelectorAll('#chord-type-grid .rect').forEach(rect => {
+            if (!rect.classList.contains('chord-type')) {
+                rect.classList.add('chord-type');
+                rect.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    document.querySelectorAll('.chord-type').forEach(t => t.classList.remove('selected'));
+                    rect.classList.add('selected');
+                    selectedType = rect.textContent.trim();
+                });
+            }
+        });
+
+        // Chord item selection in Progression container
+        let selectedChordItem = null;
+
+        function selectChordItem(item) {
+            document.querySelectorAll('.chord-item').forEach(c => c.classList.remove('selected'));
+            item.classList.add('selected');
+            selectedChordItem = item;
+        }
+
+        // Add click listener to existing chord items
+        document.querySelectorAll('.chord-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.stopPropagation();
+                selectChordItem(item);
+            });
+        });
+
+        // Insert button functionality
+        document.getElementById('insert-btn').addEventListener('click', () => {
+            const chordList = document.getElementById('chord-list');
+            const chordName = selectedRoot + ' ' + selectedType;
+
+            const newChord = document.createElement('div');
+            newChord.className = 'rect chord-item';
+            newChord.style.cssText = 'background-color: #fffff7; border-left: none; border-right: none; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; font-family: \'Roboto\', sans-serif; font-weight: 500; font-size: 14px; color: rgba(0,0,0,0.5);';
+            newChord.innerHTML = '<span>' + chordName + '</span><span>4/4</span>';
+
+            // Add click listener for selection
+            newChord.addEventListener('click', (e) => {
+                e.stopPropagation();
+                selectChordItem(newChord);
+            });
+
+            chordList.appendChild(newChord);
+
+            // Select the newly added chord
+            selectChordItem(newChord);
         });
     </script>
 
