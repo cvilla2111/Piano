@@ -97,11 +97,11 @@
             gap: 0;
             min-width: 100%;
             min-height: 100%;
-            transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            will-change: transform;
         }
 
-        .scroll-content.dragging {
-            transition: none;
+        .scroll-content.animating {
+            transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
 
         .header-chevron-left {
@@ -396,14 +396,18 @@
 
         lucide.createIcons();
 
-        // Scroll with rubber band edge effect (vertical only)
+        // Smooth scroll with momentum and rubber band edge effect (vertical only)
         document.querySelectorAll('.scroll-container').forEach(container => {
             const content = container.querySelector('.scroll-content');
             let isDragging = false;
-            let startY = 0;
             let scrollY = 0;
             let lastPointerY = 0;
+            let lastTime = 0;
+            let velocity = 0;
+            let animationId = null;
             const rubberBandFactor = 0.3;
+            const friction = 0.95;
+            const minVelocity = 0.5;
 
             function getMaxScroll() {
                 const contentHeight = content.scrollHeight;
@@ -418,81 +422,126 @@
                 return e.clientY;
             }
 
-            function clampScroll(value) {
-                const maxScroll = getMaxScroll();
-                return Math.max(-maxScroll, Math.min(0, value));
-            }
-
             function applyRubberBand(value) {
                 const maxScroll = getMaxScroll();
                 if (value > 0) {
-                    // Past top edge
                     return value * rubberBandFactor;
                 } else if (value < -maxScroll) {
-                    // Past bottom edge
                     const overscroll = value + maxScroll;
                     return -maxScroll + (overscroll * rubberBandFactor);
                 }
                 return value;
             }
 
-            function updateTransform(value, animate) {
-                if (animate) {
-                    content.classList.remove('dragging');
-                } else {
-                    content.classList.add('dragging');
-                }
+            function isOutOfBounds() {
+                const maxScroll = getMaxScroll();
+                return scrollY > 0 || scrollY < -maxScroll;
+            }
+
+            function updateTransform(value) {
                 content.style.transform = `translateY(${value}px)`;
             }
 
             function snapToBounds() {
                 const maxScroll = getMaxScroll();
+                content.classList.add('animating');
                 if (scrollY > 0) {
                     scrollY = 0;
                 } else if (scrollY < -maxScroll) {
                     scrollY = -maxScroll;
                 }
-                updateTransform(scrollY, true);
+                updateTransform(scrollY);
+                setTimeout(() => content.classList.remove('animating'), 400);
+            }
+
+            function momentumLoop() {
+                if (isDragging) return;
+
+                velocity *= friction;
+                scrollY += velocity;
+
+                if (isOutOfBounds()) {
+                    velocity *= 0.5;
+                    if (Math.abs(velocity) < minVelocity) {
+                        velocity = 0;
+                        snapToBounds();
+                        return;
+                    }
+                }
+
+                const displayY = applyRubberBand(scrollY);
+                updateTransform(displayY);
+
+                if (Math.abs(velocity) > minVelocity) {
+                    animationId = requestAnimationFrame(momentumLoop);
+                } else if (isOutOfBounds()) {
+                    snapToBounds();
+                }
+            }
+
+            function stopMomentum() {
+                if (animationId) {
+                    cancelAnimationFrame(animationId);
+                    animationId = null;
+                }
+                velocity = 0;
             }
 
             function onStart(e) {
                 isDragging = true;
-                content.classList.add('dragging');
+                stopMomentum();
+                content.classList.remove('animating');
                 lastPointerY = getPointerY(e);
-                startY = lastPointerY;
+                lastTime = Date.now();
+                velocity = 0;
             }
 
             function onMove(e) {
                 if (!isDragging) return;
                 e.preventDefault();
                 const pointerY = getPointerY(e);
+                const now = Date.now();
                 const delta = pointerY - lastPointerY;
-                lastPointerY = pointerY;
+                const dt = now - lastTime;
 
+                if (dt > 0) {
+                    velocity = delta / dt * 16;
+                }
+
+                lastPointerY = pointerY;
+                lastTime = now;
                 scrollY += delta;
+
                 const displayY = applyRubberBand(scrollY);
-                updateTransform(displayY, false);
+                updateTransform(displayY);
             }
 
             function onEnd() {
                 if (!isDragging) return;
                 isDragging = false;
-                snapToBounds();
+
+                if (isOutOfBounds() || Math.abs(velocity) < minVelocity) {
+                    snapToBounds();
+                } else {
+                    animationId = requestAnimationFrame(momentumLoop);
+                }
             }
 
-            // Wheel/touchpad scroll
+            // Wheel/touchpad scroll with smooth momentum
             function onWheel(e) {
                 e.preventDefault();
-                content.classList.add('dragging');
+                stopMomentum();
+                content.classList.remove('animating');
 
                 scrollY -= e.deltaY;
                 const displayY = applyRubberBand(scrollY);
-                updateTransform(displayY, false);
+                updateTransform(displayY);
 
-                // Debounce snap back for overscroll
                 clearTimeout(container.wheelTimeout);
                 container.wheelTimeout = setTimeout(() => {
-                    snapToBounds();
+                    if (isOutOfBounds()) {
+                        snapToBounds();
+                    }
                 }, 150);
             }
 
