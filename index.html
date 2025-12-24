@@ -400,7 +400,7 @@
     <div class="left-container">
         <div class="scroll-container" style="top: var(--header-height); bottom: var(--header-height);">
             <div id="chord-list" class="scroll-content" style="grid-template-columns: 1fr;">
-                <div class="rect chord-item" style="background-color: #fffff7; border-left: none; border-right: none; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px; color: rgba(0,0,0,0.5);"><span>C Maj</span><span>4/4</span></div>
+                <div class="rect chord-item" style="background-color: #fffff7; border-left: none; border-right: none; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px; color: rgba(0,0,0,0.5);"><span class="chord-name">C Maj</span><span class="chord-duration">4 Beats</span></div>
             </div>
         </div>
     </div>
@@ -409,7 +409,7 @@
         <span class="header-title" style="font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 16px; color: white;">01/01</span>
         <i class="header-chevron-right" data-lucide="chevron-right" width="20" height="20" stroke-width="3" style="color: white;"></i>
         <div class="mobile-icons">
-            <i data-lucide="play" width="24" height="24" style="color: white; fill: white;"></i>
+            <i class="play-btn" data-lucide="play" width="24" height="24" style="color: white; fill: white; cursor: pointer;"></i>
             <i class="audio-lines-btn" data-lucide="audio-lines" width="24" height="24" stroke-width="2.5" style="color: white; cursor: pointer;"></i>
             <i data-lucide="rotate-ccw" width="24" height="24" stroke-width="2.5" style="color: white;"></i>
             <i data-lucide="menu" width="24" height="24" stroke-width="3" style="color: white;"></i>
@@ -435,7 +435,7 @@
     </div>
     <div class="header right-header">
         <span style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px; color: white;">Chord root</span>
-        <i data-lucide="play" width="18" height="18" style="position: absolute; right: 160px; top: 50%; transform: translateY(-50%); color: white; fill: white;"></i>
+        <i class="play-btn" data-lucide="play" width="18" height="18" style="position: absolute; right: 160px; top: 50%; transform: translateY(-50%); color: white; fill: white; cursor: pointer;"></i>
         <i class="audio-lines-btn" data-lucide="audio-lines" width="18" height="18" stroke-width="2.5" style="position: absolute; right: 112px; top: 50%; transform: translateY(-50%); color: white; cursor: pointer;"></i>
         <i data-lucide="rotate-ccw" width="18" height="18" stroke-width="2.5" style="position: absolute; right: 64px; top: 50%; transform: translateY(-50%); color: white;"></i>
         <i data-lucide="menu" width="18" height="18" stroke-width="3" style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); color: white;"></i>
@@ -609,6 +609,226 @@
 
         lucide.createIcons();
 
+        // Audio setup
+        let audioContext = null;
+        let pianoBuffer = null;
+        let pianoArrayBuffer = null;
+        let isPlaying = false;
+        let playInterval = null;
+        let activeSources = [];
+        let audioReady = false;
+        const BPM = 70;
+        const beatDuration = 60 / BPM * 1000; // ms per beat
+
+        // Note to semitone offset from C4
+        const noteToSemitone = {
+            'C': 0, 'C#': 1, 'D': 2, 'D#': 3, 'E': 4, 'F': 5,
+            'F#': 6, 'G': 7, 'G#': 8, 'A': 9, 'A#': 10, 'B': 11
+        };
+
+        // Chord intervals (semitones from root)
+        const chordIntervals = {
+            'Maj': [0, 4, 7],
+            'Min': [0, 3, 7],
+            'Dim': [0, 3, 6],
+            '6': [0, 4, 7, 9],
+            'min6': [0, 3, 7, 9],
+            'Aug': [0, 4, 8],
+            'Maj7': [0, 4, 7, 11],
+            'Min7': [0, 3, 7, 10],
+            '7': [0, 4, 7, 10],
+            'Maj9': [0, 4, 7, 11, 14],
+            'Min9': [0, 3, 7, 10, 14],
+            '9': [0, 4, 7, 10, 14],
+            'Sus2': [0, 2, 7],
+            'Sus4': [0, 5, 7],
+            '5': [0, 7],
+            'Dim7': [0, 3, 6, 9]
+        };
+
+        // Pre-fetch audio file on page load (no user interaction needed for fetch)
+        (async function prefetchAudio() {
+            try {
+                const response = await fetch('sounds/C4v16.wav');
+                pianoArrayBuffer = await response.arrayBuffer();
+            } catch (e) {
+                console.log('Could not prefetch audio:', e);
+            }
+        })();
+
+        // Decode audio (requires AudioContext which needs user interaction)
+        async function decodeAudio() {
+            if (pianoBuffer || !pianoArrayBuffer) return;
+            try {
+                pianoBuffer = await audioContext.decodeAudioData(pianoArrayBuffer.slice(0));
+                audioReady = true;
+            } catch (e) {
+                console.log('Could not decode audio:', e);
+            }
+        }
+
+        // Stop all active sounds
+        function stopAllSounds() {
+            activeSources.forEach(source => {
+                try {
+                    source.stop();
+                } catch (e) {}
+            });
+            activeSources = [];
+        }
+
+        // Play a note with pitch shift
+        function playNote(semitoneOffset, delayMs = 0) {
+            if (!pianoBuffer || !audioContext) return;
+
+            const playSound = () => {
+                const source = audioContext.createBufferSource();
+                const gainNode = audioContext.createGain();
+
+                source.buffer = pianoBuffer;
+                source.playbackRate.value = Math.pow(2, semitoneOffset / 12);
+                gainNode.gain.value = 0.3;
+
+                source.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                source.start(0);
+
+                // Track active source
+                activeSources.push(source);
+                source.onended = () => {
+                    const index = activeSources.indexOf(source);
+                    if (index > -1) activeSources.splice(index, 1);
+                };
+            };
+
+            if (delayMs > 0) {
+                const timeoutId = setTimeout(playSound, delayMs);
+                activeSources.push({ stop: () => clearTimeout(timeoutId) });
+            } else {
+                playSound();
+            }
+        }
+
+        // Play a chord
+        function playChord(rootNote, chordType, time, duration) {
+            const rootSemitone = noteToSemitone[rootNote] || 0;
+            const intervals = chordIntervals[chordType] || chordIntervals['Maj'];
+
+            // Play bass note (one octave lower)
+            playNote(rootSemitone - 12, time, duration);
+
+            // Play chord notes
+            intervals.forEach((interval, index) => {
+                // Slight delay for ballad feel (arpeggio effect)
+                const delay = index * 0.03;
+                playNote(rootSemitone + interval, time + delay, duration);
+            });
+        }
+
+        // Ballad pattern for 4 beats
+        function playBalladPattern(rootNote, chordType) {
+            if (!audioContext) return;
+
+            const rootSemitone = noteToSemitone[rootNote] || 0;
+            const intervals = chordIntervals[chordType] || chordIntervals['Maj'];
+
+            // Beat 1: Bass note
+            playNote(rootSemitone - 12, 0);
+
+            // Beat 1.5: Chord
+            intervals.forEach((interval, i) => {
+                playNote(rootSemitone + interval, beatDuration * 0.5 + i * 20);
+            });
+
+            // Beat 2.5: Chord again
+            intervals.forEach((interval, i) => {
+                playNote(rootSemitone + interval, beatDuration * 1.5 + i * 20);
+            });
+
+            // Beat 3: Bass note
+            playNote(rootSemitone - 12, beatDuration * 2);
+
+            // Beat 3.5: Chord
+            intervals.forEach((interval, i) => {
+                playNote(rootSemitone + interval, beatDuration * 2.5 + i * 20);
+            });
+
+            // Beat 4.5: Chord
+            intervals.forEach((interval, i) => {
+                playNote(rootSemitone + interval, beatDuration * 3.5 + i * 20);
+            });
+        }
+
+        // Toggle play/pause
+        function togglePlay() {
+            if (isPlaying) {
+                // Stop
+                isPlaying = false;
+                if (playInterval) {
+                    clearInterval(playInterval);
+                    playInterval = null;
+                }
+                stopAllSounds();
+                // Update icon to play
+                document.querySelectorAll('.play-btn[data-lucide="pause"]').forEach(icon => {
+                    icon.setAttribute('data-lucide', 'play');
+                    icon.style.fill = 'white';
+                });
+                lucide.createIcons();
+            } else {
+                // Start
+                isPlaying = true;
+
+                // Resume audio context if suspended
+                if (audioContext && audioContext.state === 'suspended') {
+                    audioContext.resume();
+                }
+
+                // Update icon to pause
+                document.querySelectorAll('.play-btn[data-lucide="play"]').forEach(icon => {
+                    icon.setAttribute('data-lucide', 'pause');
+                    icon.style.fill = 'none';
+                });
+                lucide.createIcons();
+
+                // Play immediately
+                playBalladPattern(selectedRoot, selectedType);
+
+                // Loop every 4 beats
+                playInterval = setInterval(() => {
+                    if (isPlaying) {
+                        playBalladPattern(selectedRoot, selectedType);
+                    }
+                }, beatDuration * 4);
+            }
+        }
+
+        // Initialize audio context on first user interaction
+        async function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioContext.state === 'suspended') {
+                await audioContext.resume();
+            }
+            await decodeAudio();
+        }
+
+        // Initialize audio on any click (to pre-decode)
+        document.addEventListener('click', initAudio, { once: true });
+
+        // Play button click handler (using event delegation)
+        document.addEventListener('click', async (e) => {
+            if (e.target.closest('.play-btn')) {
+                e.stopPropagation();
+                await initAudio();
+                if (audioReady) {
+                    togglePlay();
+                }
+            }
+        });
+
         // Smooth scroll with momentum and rubber band edge effect (vertical only)
         document.querySelectorAll('.scroll-container, .modal-scroll-container').forEach(container => {
             const content = container.querySelector('.scroll-content, .modal-scroll-content');
@@ -777,6 +997,17 @@
         // Chord selection and insert functionality
         let selectedRoot = 'C';
         let selectedType = 'Maj';
+        let selectedDuration = '4 Beats';
+
+        // Function to update selected chord in progression
+        function updateSelectedChord() {
+            if (selectedChordItem) {
+                const nameSpan = selectedChordItem.querySelector('.chord-name');
+                const durationSpan = selectedChordItem.querySelector('.chord-duration');
+                if (nameSpan) nameSpan.textContent = selectedRoot + ' ' + selectedType;
+                if (durationSpan) durationSpan.textContent = selectedDuration;
+            }
+        }
 
         // Select first root note and first chord type by default
         document.querySelector('.root-note[data-note="C"]').classList.add('selected');
@@ -789,6 +1020,7 @@
                 document.querySelectorAll('.root-note').forEach(n => n.classList.remove('selected'));
                 note.classList.add('selected');
                 selectedRoot = note.dataset.note;
+                updateSelectedChord();
             });
         });
 
@@ -799,6 +1031,7 @@
                 document.querySelectorAll('.chord-type').forEach(t => t.classList.remove('selected'));
                 type.classList.add('selected');
                 selectedType = type.textContent.trim();
+                updateSelectedChord();
             });
         });
 
@@ -811,6 +1044,7 @@
                     document.querySelectorAll('.chord-type').forEach(t => t.classList.remove('selected'));
                     rect.classList.add('selected');
                     selectedType = rect.textContent.trim();
+                    updateSelectedChord();
                 });
             }
         });
@@ -822,6 +1056,43 @@
             document.querySelectorAll('.chord-item').forEach(c => c.classList.remove('selected'));
             item.classList.add('selected');
             selectedChordItem = item;
+
+            // Update selected root, type, and duration based on the clicked chord
+            const nameSpan = item.querySelector('.chord-name');
+            const durationSpan = item.querySelector('.chord-duration');
+
+            if (nameSpan) {
+                const parts = nameSpan.textContent.trim().split(' ');
+                if (parts.length >= 2) {
+                    selectedRoot = parts[0];
+                    selectedType = parts.slice(1).join(' ');
+
+                    // Update root note selection
+                    document.querySelectorAll('.root-note').forEach(n => n.classList.remove('selected'));
+                    const rootNote = document.querySelector('.root-note[data-note="' + selectedRoot + '"]');
+                    if (rootNote) rootNote.classList.add('selected');
+
+                    // Update chord type selection
+                    document.querySelectorAll('.chord-type').forEach(t => t.classList.remove('selected'));
+                    document.querySelectorAll('.chord-type').forEach(t => {
+                        if (t.textContent.trim() === selectedType) {
+                            t.classList.add('selected');
+                        }
+                    });
+                }
+            }
+
+            if (durationSpan) {
+                selectedDuration = durationSpan.textContent.trim();
+
+                // Update duration selection
+                document.querySelectorAll('.duration-item').forEach(d => d.classList.remove('selected'));
+                document.querySelectorAll('.duration-item').forEach(d => {
+                    if (d.textContent.trim() === selectedDuration) {
+                        d.classList.add('selected');
+                    }
+                });
+            }
         }
 
         // Add click listener to existing chord items
@@ -840,7 +1111,7 @@
             const newChord = document.createElement('div');
             newChord.className = 'rect chord-item';
             newChord.style.cssText = 'background-color: #fffff7; border-left: none; border-right: none; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; font-family: \'Roboto\', sans-serif; font-weight: 500; font-size: 14px; color: rgba(0,0,0,0.5);';
-            newChord.innerHTML = '<span>' + chordName + '</span><span>4/4</span>';
+            newChord.innerHTML = '<span class="chord-name">' + chordName + '</span><span class="chord-duration">' + selectedDuration + '</span>';
 
             // Add click listener for selection
             newChord.addEventListener('click', (e) => {
@@ -892,11 +1163,22 @@
                 e.stopPropagation();
                 document.querySelectorAll('.duration-item').forEach(i => i.classList.remove('selected'));
                 item.classList.add('selected');
+                const durationText = item.textContent.trim();
+                if (durationText) {
+                    selectedDuration = durationText;
+                    updateSelectedChord();
+                }
             });
         });
 
         // Select 4 Beats by default
         document.querySelector('.duration-item').classList.add('selected');
+
+        // Select first chord in progression by default
+        const firstChord = document.querySelector('.chord-item');
+        if (firstChord) {
+            selectChordItem(firstChord);
+        }
 
         // Remove button functionality
         document.getElementById('remove-btn').addEventListener('click', () => {
