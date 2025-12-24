@@ -110,6 +110,19 @@
             background-color: #d8fff7 !important;
         }
 
+        .duration-item {
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+        }
+
+        .duration-item:hover {
+            filter: brightness(0.95);
+        }
+
+        .duration-item.selected {
+            background-color: #d8fff7 !important;
+        }
+
         /* Modal styles */
         .modal-overlay {
             position: fixed;
@@ -531,22 +544,22 @@
     <div class="right-container" style="top: var(--duration-top); height: var(--duration-height); background-color: #f7f7f0; box-shadow: 0 4px 8px rgba(0,0,0,0.25);">
         <div class="scroll-container">
             <div class="scroll-content" style="grid-template-columns: repeat(8, 1fr);">
-                <div class="rect" style="background-color: #fffff7; border-left: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">4 Beats</div>
-                <div class="rect" style="background-color: #fffff7; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">3 Beats</div>
-                <div class="rect" style="background-color: #fffff7; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">2 Beats</div>
-                <div class="rect" style="background-color: #fffff7; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">1 Beat</div>
-                <div class="rect" style="background-color: #fffff7; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">1/2 Beat</div>
-                <div class="rect" style="background-color: #fffff7; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">1/4 Beat</div>
-                <div class="rect" style="background-color: #fffff7; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">1/8 Beat</div>
-                <div class="rect" style="background-color: #fffff7; border-right: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">1/16 Beat</div>
-                <div class="rect" style="background-color: #fffff7; border-bottom: none; border-left: none;"></div>
-                <div class="rect" style="background-color: #fffff7; border-bottom: none;"></div>
-                <div class="rect" style="background-color: #fffff7; border-bottom: none;"></div>
-                <div class="rect" style="background-color: #fffff7; border-bottom: none;"></div>
-                <div class="rect" style="background-color: #fffff7; border-bottom: none;"></div>
-                <div class="rect" style="background-color: #fffff7; border-bottom: none;"></div>
-                <div class="rect" style="background-color: #fffff7; border-bottom: none;"></div>
-                <div class="rect" style="background-color: #fffff7; border-bottom: none; border-right: none;"></div>
+                <div class="rect duration-item" style="background-color: #fffff7; border-left: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">4 Beats</div>
+                <div class="rect duration-item" style="background-color: #fffff7; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">3 Beats</div>
+                <div class="rect duration-item" style="background-color: #fffff7; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">2 Beats</div>
+                <div class="rect duration-item" style="background-color: #fffff7; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">1 Beat</div>
+                <div class="rect duration-item" style="background-color: #fffff7; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">1/2 Beat</div>
+                <div class="rect duration-item" style="background-color: #fffff7; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">1/4 Beat</div>
+                <div class="rect duration-item" style="background-color: #fffff7; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">1/8 Beat</div>
+                <div class="rect duration-item" style="background-color: #fffff7; border-right: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">1/16 Beat</div>
+                <div class="rect duration-item" style="background-color: #fffff7; border-bottom: none; border-left: none;"></div>
+                <div class="rect duration-item" style="background-color: #fffff7; border-bottom: none;"></div>
+                <div class="rect duration-item" style="background-color: #fffff7; border-bottom: none;"></div>
+                <div class="rect duration-item" style="background-color: #fffff7; border-bottom: none;"></div>
+                <div class="rect duration-item" style="background-color: #fffff7; border-bottom: none;"></div>
+                <div class="rect duration-item" style="background-color: #fffff7; border-bottom: none;"></div>
+                <div class="rect duration-item" style="background-color: #fffff7; border-bottom: none;"></div>
+                <div class="rect duration-item" style="background-color: #fffff7; border-bottom: none; border-right: none;"></div>
             </div>
         </div>
     </div>
@@ -871,6 +884,37 @@
                 document.querySelectorAll('.mixer-row').forEach(r => r.classList.remove('selected'));
                 row.classList.add('selected');
             });
+        });
+
+        // Duration item selection
+        document.querySelectorAll('.duration-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.stopPropagation();
+                document.querySelectorAll('.duration-item').forEach(i => i.classList.remove('selected'));
+                item.classList.add('selected');
+            });
+        });
+
+        // Select 4 Beats by default
+        document.querySelector('.duration-item').classList.add('selected');
+
+        // Remove button functionality
+        document.getElementById('remove-btn').addEventListener('click', () => {
+            if (selectedChordItem) {
+                const chordList = document.getElementById('chord-list');
+                const chords = chordList.querySelectorAll('.chord-item');
+
+                // Remove the selected chord
+                selectedChordItem.remove();
+
+                // Select another chord if available
+                const remainingChords = chordList.querySelectorAll('.chord-item');
+                if (remainingChords.length > 0) {
+                    selectChordItem(remainingChords[remainingChords.length - 1]);
+                } else {
+                    selectedChordItem = null;
+                }
+            }
         });
     </script>
 
