@@ -78,7 +78,9 @@
 
         .rect {
             height: var(--rect-height);
-            border: 2px solid rgba(0,0,0,0.15);
+            border-style: solid;
+            border-color: rgba(0,0,0,0.15);
+            border-width: 0 2px 4px 2px;
             color: rgba(0,0,0,0.5);
         }
 
@@ -110,7 +112,6 @@
 
         /* Modal styles */
         .modal-overlay {
-            display: none;
             position: fixed;
             top: 0;
             left: 0;
@@ -120,10 +121,15 @@
             z-index: 1000;
             justify-content: center;
             align-items: center;
+            display: flex;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease, visibility 0.2s ease;
         }
 
         .modal-overlay.active {
-            display: flex;
+            opacity: 1;
+            visibility: visible;
         }
 
         .modal {
@@ -133,6 +139,12 @@
             border-radius: 8px;
             display: flex;
             flex-direction: column;
+            transform: scale(0.95);
+            transition: transform 0.2s ease;
+        }
+
+        .modal-overlay.active .modal {
+            transform: scale(1);
         }
 
         .modal-title {
@@ -140,11 +152,11 @@
             font-weight: 500;
             font-size: 14px;
             color: white;
-            padding: 16px;
+            padding: 20px;
         }
 
         .modal-content {
-            padding: 0 20px 0 20px;
+            padding: 0 28px 0 28px;
             flex: 1;
             display: flex;
             flex-direction: column;
@@ -152,7 +164,7 @@
 
         .modal-inner-container {
             background-color: #f7f7f0;
-            border-radius: 4px;
+            border-radius: 0;
             overflow: hidden;
             position: relative;
             flex: 1;
@@ -183,8 +195,9 @@
         .mixer-row {
             height: var(--rect-height);
             background-color: #fffff7;
-            border: 2px solid rgba(0,0,0,0.15);
-            border-bottom: none;
+            border-style: solid;
+            border-color: rgba(0,0,0,0.15);
+            border-width: 0 2px 4px 2px;
             display: flex;
             align-items: center;
             padding: 0 12px;
@@ -194,12 +207,8 @@
             color: rgba(0,0,0,0.5);
         }
 
-        .mixer-row:last-child {
-            border-bottom: 2px solid rgba(0,0,0,0.15);
-        }
-
         .modal-footer {
-            padding: 16px;
+            padding: 20px;
             display: flex;
             justify-content: flex-end;
         }
@@ -355,7 +364,7 @@
     <div class="left-container">
         <div class="scroll-container" style="top: var(--header-height); bottom: var(--header-height);">
             <div id="chord-list" class="scroll-content" style="grid-template-columns: 1fr;">
-                <div class="rect chord-item" style="background-color: #fffff7; border-top: none; border-left: none; border-right: none; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px; color: rgba(0,0,0,0.5);"><span>C Maj</span><span>4/4</span></div>
+                <div class="rect chord-item" style="background-color: #fffff7; border-left: none; border-right: none; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px; color: rgba(0,0,0,0.5);"><span>C Maj</span><span>4/4</span></div>
             </div>
         </div>
     </div>
@@ -373,12 +382,12 @@
     <div class="right-container" style="top: var(--gap); height: var(--root-height); background-color: #f7f7f0; box-shadow: 0 4px 8px rgba(0,0,0,0.25);">
         <div class="scroll-container">
             <div id="chord-root-grid" class="scroll-content" style="grid-template-columns: repeat(6, 1fr);">
-                <div class="rect root-note" data-note="C" style="background-color: #d8ffd1; border-top: none; border-left: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">C</div>
-                <div class="rect root-note" data-note="C#" style="background-color: #ffe5dd; border-top: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">C<sup>#</sup>/D<sup>b</sup></div>
-                <div class="rect root-note" data-note="D" style="background-color: #d8ffd1; border-top: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">D</div>
-                <div class="rect root-note" data-note="D#" style="background-color: #ffe5dd; border-top: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">D<sup>#</sup>/E<sup>b</sup></div>
-                <div class="rect root-note" data-note="E" style="background-color: #d8ffd1; border-top: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">E</div>
-                <div class="rect root-note" data-note="F" style="background-color: #d8ffd1; border-top: none; border-right: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">F</div>
+                <div class="rect root-note" data-note="C" style="background-color: #d8ffd1; border-left: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">C</div>
+                <div class="rect root-note" data-note="C#" style="background-color: #ffe5dd; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">C<sup>#</sup>/D<sup>b</sup></div>
+                <div class="rect root-note" data-note="D" style="background-color: #d8ffd1; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">D</div>
+                <div class="rect root-note" data-note="D#" style="background-color: #ffe5dd; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">D<sup>#</sup>/E<sup>b</sup></div>
+                <div class="rect root-note" data-note="E" style="background-color: #d8ffd1; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">E</div>
+                <div class="rect root-note" data-note="F" style="background-color: #d8ffd1; border-right: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">F</div>
                 <div class="rect root-note" data-note="F#" style="background-color: #ffe5dd; border-bottom: none; border-left: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">F<sup>#</sup>/G<sup>b</sup></div>
                 <div class="rect root-note" data-note="G" style="background-color: #d8ffd1; border-bottom: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">G</div>
                 <div class="rect root-note" data-note="G#" style="background-color: #ffe5dd; border-bottom: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">G<sup>#</sup>/A<sup>b</sup></div>
@@ -399,12 +408,12 @@
         <div class="scroll-container">
             <div id="chord-type-grid" class="scroll-content" style="grid-template-columns: repeat(6, 1fr);">
                 <!-- Row 1: Maj, Min, Dim, 6, min6, Aug -->
-                <div class="rect chord-type" data-type="Maj" style="background-color: #d8ffd1; border-top: none; border-left: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">Maj</div>
-                <div class="rect chord-type" data-type="Min" style="background-color: #ffe5dd; border-top: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">Min</div>
-                <div class="rect chord-type" data-type="Dim" style="background-color: #d8ffd1; border-top: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">Dim</div>
-                <div class="rect chord-type" data-type="6" style="background-color: #ffe5dd; border-top: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">6</div>
-                <div class="rect chord-type" data-type="min6" style="background-color: #d8ffd1; border-top: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">min6</div>
-                <div class="rect chord-type" data-type="Aug" style="background-color: #d8ffd1; border-top: none; border-right: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">Aug</div>
+                <div class="rect chord-type" data-type="Maj" style="background-color: #d8ffd1; border-left: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">Maj</div>
+                <div class="rect chord-type" data-type="Min" style="background-color: #ffe5dd; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">Min</div>
+                <div class="rect chord-type" data-type="Dim" style="background-color: #d8ffd1; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">Dim</div>
+                <div class="rect chord-type" data-type="6" style="background-color: #ffe5dd; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">6</div>
+                <div class="rect chord-type" data-type="min6" style="background-color: #d8ffd1; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">min6</div>
+                <div class="rect chord-type" data-type="Aug" style="background-color: #d8ffd1; border-right: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">Aug</div>
                 <!-- Row 2: Maj7, Min7, 7, Maj9, Min9, 9 -->
                 <div class="rect" style="background-color: #ffe5dd; border-left: none; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">Maj7</div>
                 <div class="rect" style="background-color: #d8ffd1; display: flex; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; font-weight: 500; font-size: 14px;">Min7</div>
@@ -499,14 +508,14 @@
     <div class="right-container" style="top: var(--duration-top); height: var(--duration-height); background-color: #f7f7f0; box-shadow: 0 4px 8px rgba(0,0,0,0.25);">
         <div class="scroll-container">
             <div class="scroll-content" style="grid-template-columns: repeat(8, 1fr);">
-                <div class="rect" style="background-color: #fffff7; border-top: none; border-left: none;"></div>
-                <div class="rect" style="background-color: #fffff7; border-top: none;"></div>
-                <div class="rect" style="background-color: #fffff7; border-top: none;"></div>
-                <div class="rect" style="background-color: #fffff7; border-top: none;"></div>
-                <div class="rect" style="background-color: #fffff7; border-top: none;"></div>
-                <div class="rect" style="background-color: #fffff7; border-top: none;"></div>
-                <div class="rect" style="background-color: #fffff7; border-top: none;"></div>
-                <div class="rect" style="background-color: #fffff7; border-top: none; border-right: none;"></div>
+                <div class="rect" style="background-color: #fffff7; border-left: none;"></div>
+                <div class="rect" style="background-color: #fffff7;"></div>
+                <div class="rect" style="background-color: #fffff7;"></div>
+                <div class="rect" style="background-color: #fffff7;"></div>
+                <div class="rect" style="background-color: #fffff7;"></div>
+                <div class="rect" style="background-color: #fffff7;"></div>
+                <div class="rect" style="background-color: #fffff7;"></div>
+                <div class="rect" style="background-color: #fffff7; border-right: none;"></div>
                 <div class="rect" style="background-color: #fffff7; border-bottom: none; border-left: none;"></div>
                 <div class="rect" style="background-color: #fffff7; border-bottom: none;"></div>
                 <div class="rect" style="background-color: #fffff7; border-bottom: none;"></div>
@@ -811,13 +820,12 @@
         // Audio modal functionality
         const audioModal = document.getElementById('audio-modal');
 
-        // Open modal when clicking audio-lines icons
-        document.querySelectorAll('.audio-lines-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
+        // Open modal when clicking audio-lines icons (using event delegation)
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.audio-lines-btn')) {
                 e.stopPropagation();
                 audioModal.classList.add('active');
-                lucide.createIcons();
-            });
+            }
         });
 
         // Close modal when clicking close button
