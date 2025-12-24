@@ -136,11 +136,11 @@
             background-color: #2a2a27;
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
             position: relative;
-            border-radius: 8px;
             display: flex;
             flex-direction: column;
             transform: scale(0.95);
             transition: transform 0.2s ease;
+            border-radius: 11px;
         }
 
         .modal-overlay.active .modal {
@@ -153,6 +153,11 @@
             font-size: 14px;
             color: white;
             padding: 20px;
+            padding-left: 30px;
+            padding-right: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .modal-content {
@@ -197,20 +202,38 @@
             background-color: #fffff7;
             border-style: solid;
             border-color: rgba(0,0,0,0.15);
-            border-width: 0 2px 4px 2px;
+            border-width: 0 0 4px 0;
             display: flex;
             align-items: center;
-            padding: 0 12px;
+            justify-content: space-between;
+            padding: 0 24px;
             font-family: 'Roboto', sans-serif;
             font-weight: 500;
             font-size: 14px;
             color: rgba(0,0,0,0.5);
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+        }
+
+        .mixer-row:hover {
+            filter: brightness(0.95);
+        }
+
+        .mixer-row.selected {
+            background-color: #d8fff7 !important;
         }
 
         .modal-footer {
             padding: 20px;
+            padding-left: 30px;
+            padding-right: 30px;
             display: flex;
-            justify-content: flex-end;
+            justify-content: space-between;
+            align-items: center;
+            font-family: 'Roboto', sans-serif;
+            font-weight: 500;
+            font-size: 14px;
+            color: white;
         }
 
         .modal-close-btn {
@@ -539,25 +562,26 @@
     <!-- Audio Lines Modal -->
     <div id="audio-modal" class="modal-overlay">
         <div class="modal" style="width: 600px; height: 470px;">
-            <div class="modal-title">Instrument mixer</div>
+            <div class="modal-title"><span>Instrument mixer</span><span>Edit song &nbsp;&nbsp;|&nbsp;&nbsp; BPM: 70</span></div>
             <div class="modal-content">
                 <div class="modal-inner-container">
                     <div class="modal-scroll-container">
                         <div class="modal-scroll-content">
-                            <div class="mixer-row">1.</div>
-                            <div class="mixer-row">2.</div>
-                            <div class="mixer-row">3.</div>
-                            <div class="mixer-row">4.</div>
-                            <div class="mixer-row">5.</div>
-                            <div class="mixer-row">6.</div>
-                            <div class="mixer-row">7.</div>
-                            <div class="mixer-row">8.</div>
+                            <div class="mixer-row"><span>1. Piano</span><span>Volume 5</span></div>
+                            <div class="mixer-row"><span>2. Bass</span><span>Volume 5</span></div>
+                            <div class="mixer-row"><span>3. Empty</span><span>Volume 5</span></div>
+                            <div class="mixer-row"><span>4. Empty</span><span>Volume 5</span></div>
+                            <div class="mixer-row"><span>5. Empty</span><span>Volume 5</span></div>
+                            <div class="mixer-row"><span>6. Empty</span><span>Volume 5</span></div>
+                            <div class="mixer-row"><span>7. Empty</span><span>Volume 5</span></div>
+                            <div class="mixer-row"><span>8. Empty</span><span>Volume 5</span></div>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="modal-footer">
-                <span class="modal-close-btn">Close</span>
+                <span>Reverb: 5 &nbsp;&nbsp;|&nbsp;&nbsp; Chorus: 2</span>
+                <span>Presets &nbsp;&nbsp;|&nbsp;&nbsp; <span class="modal-close-btn">Close</span></span>
             </div>
         </div>
     </div>
@@ -838,6 +862,15 @@
             if (e.target === audioModal) {
                 audioModal.classList.remove('active');
             }
+        });
+
+        // Mixer row selection
+        document.querySelectorAll('.mixer-row').forEach(row => {
+            row.addEventListener('click', (e) => {
+                e.stopPropagation();
+                document.querySelectorAll('.mixer-row').forEach(r => r.classList.remove('selected'));
+                row.classList.add('selected');
+            });
         });
     </script>
 
